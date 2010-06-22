@@ -34,7 +34,11 @@ public class Board{
 				if( mult == Multiplier.MultiplierType.NONE ){
 					result.append("<td id=\""+ id + "\">&nbsp;");
 				}else{
-					result.append("<td id=\""+ id + "\" class=\"" + mult.toString() + "\">&nbsp;");
+					String htmlClass = mult.toString();
+					if( i == 7 && j == 7){
+						htmlClass += " gridCenter";
+					}
+					result.append("<td id=\""+ id + "\" class=\"" + htmlClass + "\">&nbsp;");
 				}
 				result.append("</td>");
 			}

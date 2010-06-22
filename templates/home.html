@@ -2,7 +2,7 @@
 	<body>
 		<style>
             body{
-                font-family: Verdana;
+                font-family: Arial;
             }
 
             .board{
@@ -21,7 +21,10 @@
 
 			.board td.DOUBLE_WORD{
                 background: #FFC0CB url('/static/img/2W.png') no-repeat center;
+			}
 
+			.board td.gridCenter{
+                background: #FFC0CB url('/static/img/center.png') no-repeat center;
 			}
 
 			.board td.TRIPLE_LETTER{
@@ -41,11 +44,25 @@
                 line-height:30px;
                 margin:3px;
                 float:left;
-                background-color:yellow;
+                background-color:#F9FF52;
+                font-weight:bold;
             }
 
             .dragging{
                 z-index:1000;
+            }
+            .score{
+                position:relative;
+                top:20%;
+                left: 4px;
+                font-size:10px;
+                font-weight:bold;
+                font-family: Verdana;
+            }
+            .letter{
+                left:50%;
+                position:relative;
+                left: 4px;
             }
 
             .occupied{}
@@ -55,10 +72,10 @@
 
         <div id="letters"> 
             <div id="sortable"> 
-                <div class="tile">A</div> 
-                <div class="tile">B</div> 
-                <div class="tile">C</div> 
-                <div class="tile">D</div> 
+                <div class="tile"><span class="letter">A</span><span class="score">1</span></div> 
+                <div class="tile"><span class="letter">B</span><span class="score">3</span></div> 
+                <div class="tile"><span class="letter">C</span><span class="score">2</span></div> 
+                <div class="tile"><span class="letter">D</span><span class="score">2</span></div> 
             </div> 
         </div> 
 
