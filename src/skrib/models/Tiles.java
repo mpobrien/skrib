@@ -1,4 +1,7 @@
 package skrib.models;
+import com.google.common.base.*;
+import com.google.common.collect.*;
+import java.util.*;
 
 public class Tiles{
 
@@ -52,6 +55,46 @@ public class Tiles{
 
 		public boolean blank(){
 			return false;
+		}
+
+		public Character encode(){
+			return this.ch;
+		}
+
+		public String toHtml(){
+			return "<div class=\"tile\"><span class=\"letter\">"
+				 + Character.toUpperCase( getCharacter() ) + "</span>"
+				 + "<span class=\"score\">" + getPoints() + "</span>"
+				 + "</div>";
+		}
+	}//}}}
+
+	public static final Map<Character, LetterTile> charMaps = 
+		Maps.uniqueIndex(
+					new Iterable<LetterTile>(){
+						public Iterator<LetterTile> iterator(){
+							return Iterators.forArray(LetterTile.class.getEnumConstants());
+						}
+					},
+					
+					new Function<LetterTile,Character>(){
+						public Character apply(LetterTile l){
+							return l.getCharacter();
+						}
+					}
+				);
+
+	public static Tile decode(Character c){//{{{
+		if( charMaps.containsKey( c ) ){
+			return charMaps.get( c );
+		}else{
+			if( Character.isUpperCase(c) ){
+				return new BlankTile( c );
+			}else if( c.equals( BlankTile.BLANK_ENCODING ) ){
+				return new BlankTile();
+			}else{
+				return null;
+			}
 		}
 	}//}}}
 

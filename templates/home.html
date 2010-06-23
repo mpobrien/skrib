@@ -9,11 +9,14 @@
                 border:1px solid black;
             }
 			.board td{
+				padding:none;
+				margin:none;
 				width:30px;
 				height:30px;
 				border: 1px solid black;
                 background: #eee;
 			}
+
 
 			.board td.DOUBLE_LETTER{
                 background: #AFEEEE url('/static/img/2L.png') no-repeat center;
@@ -35,6 +38,11 @@
                 background: #FF0000 url('/static/img/3W.png') no-repeat center;
 			}
 
+			.board td > .tile{
+				border: none;
+				cursor: auto;
+			}
+
             .tile{
                 width:30px;
                 height:28px;
@@ -42,10 +50,10 @@
                 text-align:center;
                 vertical-align: middle;
                 line-height:30px;
-                margin:3px;
                 float:left;
                 background-color:#F9FF52;
                 font-weight:bold;
+				cursor:pointer;
             }
 
             .dragging{
@@ -60,24 +68,49 @@
                 font-family: Verdana;
             }
             .letter{
-                left:50%;
                 position:relative;
                 left: 4px;
             }
 
             .occupied{}
+
+			.blankTile{
+                background-color:#fff;
+			}
+
+			.blankTile > .letter{
+				left:2px;
+			}
+			
 		</style>
+		<#if newUser>
+			<div class="success">
+				new user created!</b>
+			</div>
+		</#if>
+
+        <#if user?? && user.isLoggedIn>
+            hola, ${user.username}! <a href="/logout/">Log out</a>
+        <#else>
+            <a href="/login/">Log in</a> &bull; <a href="/register/">Sign up</a>
+        </#if>
 
 		${board}
 
-        <div id="letters"> 
-            <div id="sortable"> 
-                <div class="tile"><span class="letter">A</span><span class="score">1</span></div> 
-                <div class="tile"><span class="letter">B</span><span class="score">3</span></div> 
-                <div class="tile"><span class="letter">C</span><span class="score">2</span></div> 
-                <div class="tile"><span class="letter">D</span><span class="score">2</span></div> 
-            </div> 
-        </div> 
+		<br/>
+		<br/>
+		<button id="resetTiles">Reset Tiles</button>
+		<button id="shuffleTiles">shuffle</button>
+		<div id="mytiles">
+			<div id="letters"> 
+				<div id="sortable"> 
+					<div class="tile"><span class="letter">A</span><span class="score">1</span></div> 
+					<div class="tile"><span class="letter">B</span><span class="score">3</span></div> 
+					<div class="tile"><span class="letter">C</span><span class="score">2</span></div> 
+					<div class="tile"><span class="letter">D</span><span class="score">2</span></div> 
+				</div> 
+			</div> 
+		</div>
 
         <script type="text/javascript" src="/static/js/jquery-1.4.2.min.js"></script>
         <script type="text/javascript"> 
@@ -86,8 +119,35 @@
         var dragOffsetY;
         var positionsX = []
         var positionsY = []
+
+		function resetMyTiles(){<!--{{{-->
+			$('#resetTiles').click(
+				function(){
+					$('.tile:not(td>.tile)').css('position','static')
+				}
+			);
+		}<!--}}}-->
+
+		function randomInt(min, max){
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+
+		function shuffleMyTiles(){
+			resetMyTiles();
+			tiles = $('#sortable .tile').remove();
+			//$('#sortable .tile').remove();
+			while(tiles.length > 0 ){
+				randIndex = randomInt(0,tiles.length-1);
+				$('#sortable').append( tiles.splice(randIndex,1) )
+			}
+		}
+
         $(document).ready(function() {
-            $('.tile').mousedown(function(e){
+			$('#resetTiles').click(function(){ resetMyTiles() } );
+			$('#shuffleTiles').click(function(){ shuffleMyTiles() } );
+			document.onselectstart = function() {return false;} // ie
+			document.onmousedown = function() {return false;} // mozilla
+			$('.tile:not(td>.tile)').mousedown(function(e){<!--{{{-->
                 e.preventDefault()
                 dragItem = this;
                 offset = $(this).offset()
@@ -96,18 +156,19 @@
                 $(this).addClass('dragging')
                 $(document).bind('mousemove',
                     function(e){
-                        $(dragItem).offset( {top: e.pageY - dragOffsetY, left: e.pageX - dragOffsetX} );
+                        $(dragItem).offset( {top: e.pageY - dragOffsetY+1, left: e.pageX - dragOffsetX +1} );
                     }
                 )
-            })
+            })<!--}}}-->
 
-            function distance(o1, o2){
+            function distance(o1, o2){<!--{{{-->
+				console.debug('called')
                 var x = o1.top - o2.top
                 var y = o1.left - o2.left
                 return Math.sqrt(x*x + y*y)
-            }
+            }<!--}}}-->
 
-            $(document).mouseup(
+            $(document).mouseup(<!--{{{-->
                 function(e){
                     mindist = null;
                     gridspots = $('#mainboard td')
@@ -126,11 +187,19 @@
                     $(dragItem).removeClass('dragging')
                     if( closest != null && mindist < 40 && ! $(closest).hasClass('occupied') ){
                         $(dragItem).offset({top:$(closest).offset().top, left:$(closest).offset().left}  )
-                        $(closest).addClass('occupied')
                     }
                 }
-            )
+            )<!--}}}-->
         });
         </script> 
+
+		<br/>
+		<div>
+			<#if allboards??>
+				<#list allboards as board>
+					<li><a href="/game/${board.id}/">${board.id}</a></li>
+				</#list>
+			</#if>
+		</div>
 	</body>
 </html>

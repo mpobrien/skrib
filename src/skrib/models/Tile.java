@@ -6,5 +6,7 @@ public interface Tile{
 	public int getPoints();
 	public int getFrequency();
 	public boolean blank();
+	public Character encode();
+	public String toHtml();
 
 }

@@ -19,6 +19,7 @@ public @Singleton class MyServletContextListener extends GuiceServletContextList
 	//@Override
 	protected Injector getInjector() {
 		Injector injector = Guice.createInjector( new MainServletModule(),
+											      new MongoModule(),
 		                                          new AppConfigModule( HomeController.class.getPackage() ) );
 		return injector;
 	}

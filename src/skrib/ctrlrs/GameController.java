@@ -8,10 +8,9 @@ import skrib.models.dao.*;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import com.google.inject.*;
-import java.util.*;
 
-@At("^/$")
-public class HomeController extends Controller{
+@At("^/game/(\\w+)/$")
+public class GameController extends Controller{
 	Logger log = Logger.getLogger( HomeController.class );
 
     @Inject
@@ -23,21 +22,14 @@ public class HomeController extends Controller{
 
     @Override
     public WebResponse get(WebHit hit){//{{{
-		Board b = new Board();
-		Flash fl = flash.get();
-		b.setTileAt( Tiles.LetterTile.A, 3, 3);
-		log.error(up.get());
-		String success = fl.get("success");
-		List<Board> allBoards = boards.find().asList();
-		boolean newUser = success != null && success.equals("new_user");
+		String id = args.get(0);
+		Board b = boards.get(id);
         return responses.render("home.html", 
-				ImmutableMap.of("board", b.toHtml(),
-					            "user", up.get(), 
-								"allboards", allBoards,
-								"newUser", newUser) );
+				ImmutableMap.of("board", b.toHtml(), "user", up.get(), "newUser", false) );
     }//}}}
 
     @Override
     public WebResponse post(WebHit hit){ return get(hit); }
 
 }
+
