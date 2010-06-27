@@ -3,6 +3,8 @@ import skrib.models.*;
 import skrib.util.TileBag;
 import com.google.code.morphia.Morphia;
 import com.google.code.morphia.*;
+import com.google.common.base.*;
+import com.google.common.collect.*;
 import com.google.code.morphia.query.*;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
@@ -26,10 +28,14 @@ public class GameDAO extends DAO<Game,String>{
 		g.setTurnNumber(0);
 		g.setNextTurnPlayerNum(0);
 
-		HashMap<Integer,List<Tile>> playerTiles = new HashMap<Integer, List<Tile>>();
+		HashMap<Integer,Multiset<Tile>> playerTiles = new HashMap<Integer, Multiset<Tile>>();
 		for( int i=0; i<numPlayers;i++){
 			List<Tile> playerTileList = tb.takeRandomTiles(7);
-			playerTiles.put(i, playerTileList);
+			Multiset<Tile> playerTileListMulti = HashMultiset.create();
+			for(Tile t: playerTileList){
+				playerTileListMulti.add(t);
+			}
+			playerTiles.put(i, playerTileListMulti);
 		}
 		g.setPlayerTiles(playerTiles);
 		save(g);

@@ -24,7 +24,7 @@ public class Game{
     private Map<Integer,Integer> playerScores;
 
 	@Transient
-	private Map<Integer,List<Tile>> playerTiles;
+	private Map<Integer,Multiset<Tile>> playerTiles;
 	private Map<Integer,String> playerTilesMap;
 
 	@Transient 
@@ -38,8 +38,8 @@ public class Game{
 	public void setId(String id){    this.id = id;  }
 	public String getId(){    return id;  }
 
-	public Map<Integer,List<Tile>> getPlayerTiles(){ return this.playerTiles; }
-	public void setPlayerTiles(Map<Integer,List<Tile>> playerTiles){ this.playerTiles = playerTiles; }
+	public Map<Integer,Multiset<Tile>> getPlayerTiles(){ return this.playerTiles; }
+	public void setPlayerTiles(Map<Integer,Multiset<Tile>> playerTiles){ this.playerTiles = playerTiles; }
 
 	public int getNumPlayers(){    return numPlayers;  }
 	public void setNumPlayers(int numPlayers){    this.numPlayers = numPlayers;  }
@@ -60,7 +60,7 @@ public class Game{
 	//public void setCtime(Date ctime){    this.ctime = ctime;  }
  //}}}
 
-	public void makeMove(Move move, TrieNode dictionary) throws Exception{ //TODO better exceptions
+	public Set<WordPlacement> makeMove(Move move, TrieNode dictionary) throws Exception{ //TODO better exceptions
 		if( move == null ) throw new Exception("bad move found"); 
 		if( !move.isValid() ) throw new Exception("all letters must be within the same row or column");
 		//TODO check that player number matches player making the move
@@ -121,6 +121,7 @@ public class Game{
 		}
 		this.turnNumber++;
 		this.nextTurnPlayerNum = ( this.nextTurnPlayerNum + 1 ) % this.numPlayers;
+		return allWords;
 	}
 
 	@PrePersist
@@ -131,28 +132,29 @@ public class Game{
 
 	@PostLoad
 	public void postLoad(){//{{{
-		System.out.println("calling post load");
 		System.out.println("player tiles map: " + this.playerTilesMap);
 		//TODO operate directly on dbobject
 		this.playerTiles = decodePlayerTiles(this.playerTilesMap);
 	}//}}}
 
-	public static Map<Integer,String> encodePlayerTiles(Map<Integer,List<Tile>> playerTiles){//{{{
+	public static Map<Integer,String> encodePlayerTiles(Map<Integer,Multiset<Tile>> playerTiles){//{{{
 		HashMap<Integer, String> tileSetsEncoded = new HashMap<Integer, String>();
-		for(Map.Entry<Integer,List<Tile>> entry : playerTiles.entrySet()){
+		for(Map.Entry<Integer,Multiset<Tile>> entry : playerTiles.entrySet()){
 			StringBuilder tilesString = new StringBuilder();
-			for( Tile t : entry.getValue()){
-				tilesString.append(t.encode());
+			for(Multiset.Entry<Tile> tilesentry : entry.getValue().entrySet()){
+				for(int i=0;i<tilesentry.getCount();i++){
+					tilesString.append(tilesentry.getElement().encode());
+				}
 			}
 			tileSetsEncoded.put(entry.getKey(), tilesString.toString());
 		}
 		return tileSetsEncoded;
 	}//}}}
 	
-	public static Map<Integer,List<Tile>> decodePlayerTiles( Map<Integer,String> playerTilesMap ){//{{{
-		HashMap<Integer,List<Tile>> tileSetsEncoded = new HashMap<Integer,List<Tile>>();
+	public static Map<Integer,Multiset<Tile>> decodePlayerTiles( Map<Integer,String> playerTilesMap ){//{{{
+		HashMap<Integer,Multiset<Tile>> tileSetsEncoded = new HashMap<Integer,Multiset<Tile>>();
 		for(Map.Entry<Integer,String> entry : playerTilesMap.entrySet()){
-			ArrayList<Tile> plTiles = new ArrayList<Tile>();
+			HashMultiset<Tile> plTiles = HashMultiset.create();
 			String tileSet = entry.getValue();
 			for(int i=0;i<tileSet.length();i++){
 				plTiles.add( Tiles.decode( tileSet.charAt(i) ) );
