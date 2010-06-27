@@ -69,7 +69,7 @@ public class Tiles{
 		}
 	}//}}}
 
-	public static final Map<Character, LetterTile> charMaps = 
+	public static final Map<Character, LetterTile> charMaps = //{{{
 		Maps.uniqueIndex(
 					new Iterable<LetterTile>(){
 						public Iterator<LetterTile> iterator(){
@@ -83,6 +83,7 @@ public class Tiles{
 						}
 					}
 				);
+//}}}
 
 	public static Tile decode(Character c){//{{{
 		if( charMaps.containsKey( c ) ){

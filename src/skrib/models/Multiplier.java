@@ -3,11 +3,20 @@ package skrib.models;
 public class Multiplier{
 
     enum MultiplierType{//{{{
-        NONE,
-        DOUBLE_LETTER,//("AFEEEE");
-        DOUBLE_WORD,//("FFC0CB"),
-        TRIPLE_LETTER,//("4169E1"),
-        TRIPLE_WORD;//("FF0000");
+        NONE(false, 1),
+        DOUBLE_LETTER(false, 2),//("AFEEEE");
+        DOUBLE_WORD(true, 2),//("FFC0CB"),
+        TRIPLE_LETTER(false, 3),//("4169E1"),
+        TRIPLE_WORD(true, 3);//("FF0000");
+		private final boolean isWordMult;
+		private final int factor;
+		MultiplierType(boolean isWordMult, int factor){
+			this.isWordMult = isWordMult;
+			this.factor = factor;
+		}
+
+		public int getFactor(){    return factor;  }
+		public boolean getIsWordMult(){    return isWordMult;  }
     };//}}}
 
     private static MultiplierType multiplierGrid[][] = new MultiplierType[Board.GRID_SIZE][Board.GRID_SIZE];
@@ -92,4 +101,5 @@ public class Multiplier{
 		return multiplierGrid[row][col];
 	}//}}}
 
+		
 }

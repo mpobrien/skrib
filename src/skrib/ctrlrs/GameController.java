@@ -14,22 +14,22 @@ public class GameController extends Controller{
 	Logger log = Logger.getLogger( HomeController.class );
 
     @Inject
-	BoardDAO boards;
+	GameDAO games;
 	@Inject
 	UserProvider up;
-	@Inject
-	FlashProvider flash;
 
     @Override
     public WebResponse get(WebHit hit){//{{{
 		String id = args.get(0);
-		Board b = boards.get(id);
-        return responses.render("home.html", 
-				ImmutableMap.of("board", b.toHtml(), "user", up.get(), "newUser", false) );
+		Game g = games.get(id);
+        return responses.render("board.html", 
+				ImmutableMap.of("board", g.getBoardState().toHtml(), "user", up.get()) );
     }//}}}
 
     @Override
-    public WebResponse post(WebHit hit){ return get(hit); }
+    public WebResponse post(WebHit hit){//{{{
+		return get(hit);
+	}//}}}
 
 }
 

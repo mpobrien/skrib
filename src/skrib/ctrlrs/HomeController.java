@@ -15,7 +15,7 @@ public class HomeController extends Controller{
 	Logger log = Logger.getLogger( HomeController.class );
 
     @Inject
-	BoardDAO boards;
+	GameDAO games;
 	@Inject
 	UserProvider up;
 	@Inject
@@ -23,18 +23,14 @@ public class HomeController extends Controller{
 
     @Override
     public WebResponse get(WebHit hit){//{{{
-		Board b = new Board();
 		Flash fl = flash.get();
-		b.setTileAt( Tiles.LetterTile.A, 3, 3);
-		log.error(up.get());
 		String success = fl.get("success");
-		List<Board> allBoards = boards.find().asList();
+		List<Game> allGames = games.find().asList();
 		boolean newUser = success != null && success.equals("new_user");
         return responses.render("home.html", 
-				ImmutableMap.of("board", b.toHtml(),
-					            "user", up.get(), 
-								"allboards", allBoards,
-								"newUser", newUser) );
+								ImmutableMap.of("user", up.get(), 
+								                "allgames", allGames,
+												"newUser", newUser));
     }//}}}
 
     @Override
