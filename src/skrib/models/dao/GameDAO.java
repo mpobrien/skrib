@@ -20,24 +20,7 @@ public class GameDAO extends DAO<Game,String>{
     }
 
 	public Game createNewGame(User creator, Integer numPlayers){//{{{
-		Game g = new Game();
-		g.setNumPlayers(numPlayers);
-		Board b = new Board();
-		TileBag tb = new TileBag();
-		g.setBoardState(b);
-		g.setTurnNumber(0);
-		g.setNextTurnPlayerNum(0);
-
-		HashMap<Integer,Multiset<Tile>> playerTiles = new HashMap<Integer, Multiset<Tile>>();
-		for( int i=0; i<numPlayers;i++){
-			List<Tile> playerTileList = tb.takeRandomTiles(7);
-			Multiset<Tile> playerTileListMulti = HashMultiset.create();
-			for(Tile t: playerTileList){
-				playerTileListMulti.add(t);
-			}
-			playerTiles.put(i, playerTileListMulti);
-		}
-		g.setPlayerTiles(playerTiles);
+		Game g = new Game(creator, numPlayers);
 		save(g);
 		return g;
 	}//}}}
@@ -47,7 +30,9 @@ public class GameDAO extends DAO<Game,String>{
 		UpdateOperations uops = createUpdateOperations()
 			                          .set("boardState", g.getBoardState())
 									  .set("turnNumber", g.getTurnNumber())
-									  .set("nextTurnPlayerNum", g.getNextTurnPlayerNum());
+									  .set("nextTurnPlayerNum", g.getNextTurnPlayerNum())
+									  .set("playerTilesMap", g.encodePlayerTiles(g.getPlayerTiles()) )
+									  .set("mtime", g.getMtime());
 		ds.update(q1, uops);
 	}//}}}
 

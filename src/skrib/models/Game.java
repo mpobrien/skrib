@@ -17,8 +17,12 @@ public class Game{
 	@Embedded
 	private Board boardState;
 
+	private Date ctime;
+	private Date mtime;
+
 	private int numPlayers;
 
+	private List<String> playerIds;
 
 	@Transient
     private Map<Integer,Integer> playerScores;
@@ -33,13 +37,44 @@ public class Game{
 	private int turnNumber;
 	private int nextTurnPlayerNum;
 
+    public Game(){}
+
+    public Game(User creator, int numPlayers){//{{{
+		this.numPlayers = numPlayers;
+		this.boardState = new Board();
+		this.tileBag = new TileBag();
+		this.turnNumber = 0;
+		this.nextTurnPlayerNum = 0;
+        this.playerIds = new ArrayList<String>();
+		this.playerIds.add( creator.getId() );
+		this.playerScores = new HashMap<Integer,Integer>();
+		for( int i=0;i<this.numPlayers;i++){ playerScores.put(i, 0); }
+		this.playerTiles = new HashMap<Integer, Multiset<Tile>>();
+		for( int i=0; i<numPlayers;i++){
+			List<Tile> playerTileList = tileBag.takeRandomTiles(7);
+			Multiset<Tile> playerTileListMulti = HashMultiset.create();
+			for(Tile t: playerTileList){
+				playerTileListMulti.add(t);
+			}
+			playerTiles.put(i, playerTileListMulti);
+		}
+		this.ctime = new Date();
+		this.mtime = new Date();
+	}//}}}
+
 	/* Getters + Setters *///{{{
 	
 	public void setId(String id){    this.id = id;  }
 	public String getId(){    return id;  }
 
+	public List<String> getPlayerIds(){ return this.playerIds; }
+	public void setPlayerIds(List<String> playerIds){ this.playerIds = playerIds; }
+
 	public Map<Integer,Multiset<Tile>> getPlayerTiles(){ return this.playerTiles; }
 	public void setPlayerTiles(Map<Integer,Multiset<Tile>> playerTiles){ this.playerTiles = playerTiles; }
+
+	public Map<Integer,String> getPlayerTilesMap(){ return this.playerTilesMap; }
+	//public void setPlayerTiles(Map<Integer,Multiset<Tile>> playerTiles){ this.playerTiles = playerTiles; }
 
 	public int getNumPlayers(){    return numPlayers;  }
 	public void setNumPlayers(int numPlayers){    this.numPlayers = numPlayers;  }
@@ -56,15 +91,29 @@ public class Game{
 	public int getNextTurnPlayerNum(){    return nextTurnPlayerNum;  }
 	public void setNextTurnPlayerNum(int nextTurnPlayerNum){    this.nextTurnPlayerNum = nextTurnPlayerNum;  }
 
-	//public Date getCtime(){    return ctime;  }
-	//public void setCtime(Date ctime){    this.ctime = ctime;  }
+	public Date getCtime(){    return ctime;  }
+	public void setCtime(Date ctime){    this.ctime = ctime;  }
+
+	public Date getMtime(){    return mtime;  }
+	public void setMtime(Date mtime){    this.mtime = mtime;  }
  //}}}
 
-	public Set<WordPlacement> makeMove(Move move, TrieNode dictionary) throws Exception{ //TODO better exceptions
+	public Set<WordPlacement> makeMove(User movingUser, Move move, TrieNode dictionary) throws Exception{ //TODO better exceptions
 		if( move == null ) throw new Exception("bad move found"); 
 		if( !move.isValid() ) throw new Exception("all letters must be within the same row or column");
 		//TODO check that player number matches player making the move
+		Integer userIndex = this.playerIds.indexOf(movingUser.getId());
+		if( userIndex == null ) throw new Exception("This user isn't in the game!");
+		if( userIndex != this.nextTurnPlayerNum ) throw new Exception("It's not this user's turn");
+		
 		//TODO check that the tiles in this move agree with the player's tile set
+		Multiset<Tile> movingPlayerTiles = this.playerTiles.get(nextTurnPlayerNum);
+		Multiset<Tile> moveTilesMap = move.mapify();
+		for(Multiset.Entry<Tile> tilesentry : moveTilesMap.entrySet()){
+			if( movingPlayerTiles.count( tilesentry.getElement() ) < tilesentry.getCount() ){
+				throw new Exception("insufficient tiles!");
+			}
+		}
 
 		//if this is the first move make sure that the center tile is used
 		if( this.turnNumber == 0 && move.getTileAt(new GridPosition(7,7) )==null){
@@ -86,17 +135,21 @@ public class Game{
 		//Scan and pull out a list of words
 		HashSet<WordPlacement> allWords = new HashSet<WordPlacement>();
 		for(TilePlacement tp : move.getTilePositions()){
-			List<TilePlacement> horizontalWord = scanLeftOf(tp.getGridPosition(), move);
+			//List<TilePlacement> horizontalWord = scanLeftOf(tp.getGridPosition(), move);
+			List<TilePlacement> horizontalWord = scan(tp.getGridPosition(), -1, 0, true, move);
 			horizontalWord.add(tp);
-			horizontalWord.addAll( scanRightOf(tp.getGridPosition(), move) );
+			//horizontalWord.addAll( scanRightOf(tp.getGridPosition(), move) );
+			horizontalWord.addAll( scan(tp.getGridPosition(), 1, 0, false, move) );
 			if( horizontalWord.size() > 1){
 				WordPlacement wp = new WordPlacement(horizontalWord, WordPlacement.Direction.HORIZONTAL);
 				allWords.add( wp );
 			}
 
-			List<TilePlacement> verticalWord = scanUpOf(tp.getGridPosition(), move);
+			//List<TilePlacement> verticalWord = scanUpOf(tp.getGridPosition(), move);
+			List<TilePlacement> verticalWord = scan(tp.getGridPosition(), 0, -1, true, move);
 			verticalWord.add(tp);
-			verticalWord.addAll( scanDownOf(tp.getGridPosition(), move) );
+			//verticalWord.addAll( scanDownOf(tp.getGridPosition(), move) );
+			verticalWord.addAll( scan(tp.getGridPosition(), 0, 1, false, move) );
 
 			if( verticalWord.size() > 1){
 				WordPlacement wp = new WordPlacement(verticalWord, WordPlacement.Direction.VERTICAL);
@@ -111,14 +164,21 @@ public class Game{
 			}
 		}
 
+		//Multiset<Tile> movingPlayerTiles = this.playerTiles.get(nextTurnPlayerNum);
 		////// OK it looks good, update shit
 		for(WordPlacement wp : allWords){
 			for(TilePlacement tp : wp.getTilePlacements() ){
 				if( !tp.onBoard() ){
 					this.boardState.setTileAt(tp.getTile(), tp.getGridPosition());
+					movingPlayerTiles.remove(tp.getTile());
 				}
 			}
 		}
+
+		for( Tile t : this.tileBag.takeRandomTiles(7-movingPlayerTiles.size()) ){
+			movingPlayerTiles.add(t);
+		}
+
 		this.turnNumber++;
 		this.nextTurnPlayerNum = ( this.nextTurnPlayerNum + 1 ) % this.numPlayers;
 		return allWords;
@@ -132,9 +192,9 @@ public class Game{
 
 	@PostLoad
 	public void postLoad(){//{{{
-		System.out.println("player tiles map: " + this.playerTilesMap);
 		//TODO operate directly on dbobject
 		this.playerTiles = decodePlayerTiles(this.playerTilesMap);
+		this.tileBag = boardState.getTilesBag();
 	}//}}}
 
 	public static Map<Integer,String> encodePlayerTiles(Map<Integer,Multiset<Tile>> playerTiles){//{{{
@@ -164,6 +224,27 @@ public class Game{
 		return tileSetsEncoded;
 	}//}}}
 
+	public ArrayList<TilePlacement> scan(GridPosition startPos, int dx, int dy, boolean prepend, Move m){//{{{
+		ArrayList<TilePlacement> result = new ArrayList<TilePlacement>();
+		GridPosition nextPos = startPos.move(dx, dy);
+		while( nextPos != null ){
+			Tile t = boardState.getTileAt(nextPos);
+			if( t != null ){
+				result.add( prepend ? 0 : result.size(), new TilePlacement(t, nextPos, true));
+			}else{ 
+				TilePlacement moveTile = m.getTileAt(nextPos);
+				if( moveTile != null ){
+					result.add( prepend ? 0 : result.size(), new TilePlacement(t, nextPos, true));
+				} else {
+					break;
+				}
+			}
+			nextPos = nextPos.move(dx, dy); 
+		}
+		return result;
+	}//}}}
+
+	// SCAN FUNCS//{{{
 	public ArrayList<TilePlacement> scanLeftOf(GridPosition startPos, Move m){//{{{
 		ArrayList<TilePlacement> result = new ArrayList<TilePlacement>();
 		GridPosition nextPos = startPos.moveLeft();
@@ -230,7 +311,10 @@ public class Game{
 			nextPos = nextPos.moveDown();
 		}
 		return result;
-	}//}}}
+	}//}}}//}}}
 
+	public TileBag getTileBag(){    return tileBag;  }
+	
+	public void setTileBag(TileBag tileBag){    this.tileBag = tileBag;  }
 }
 

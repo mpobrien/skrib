@@ -38,6 +38,15 @@ public class GridPosition{
 		return onTop() ? null : new GridPosition(this.row-1, this.col);
 	}
 
+	public GridPosition move(int dx, int dy){
+		int new_x = this.col + dx;
+		int new_y = this.row + dy;
+		if( new_y < 0 || new_y >= Board.GRID_SIZE ) return null;
+		if( new_x < 0 || new_x >= Board.GRID_SIZE ) return null;
+		return new GridPosition(new_y, new_x);
+	}
+
+
 	public boolean equals(Object o){//{{{
 		if( o == null || !(o instanceof GridPosition) ) return false;
 		return this.getRow() == ((GridPosition)o).getRow() &&

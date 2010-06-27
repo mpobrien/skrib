@@ -62,7 +62,7 @@ public class Board{
 				if( t == null ){
 					result.append("&nbsp;");
 				}else{
-					result.append(t.toHtml());
+					result.append(t.getHtml());
 				}
 				result.append("</td>");
 			}

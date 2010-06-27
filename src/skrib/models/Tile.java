@@ -7,6 +7,6 @@ public interface Tile{
 	public int getFrequency();
 	public boolean blank();
 	public Character encode();
-	public String toHtml();
+	public String getHtml();
 
 }

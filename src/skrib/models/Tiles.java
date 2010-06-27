@@ -61,7 +61,8 @@ public class Tiles{
 			return this.ch;
 		}
 
-		public String toHtml(){
+		@Override
+		public String getHtml(){
 			return "<div class=\"tile\"><span class=\"letter\">"
 				 + Character.toUpperCase( getCharacter() ) + "</span>"
 				 + "<span class=\"score\">" + getPoints() + "</span>"

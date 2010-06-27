@@ -39,7 +39,7 @@ public class BlankTile implements Tile{
 	}//}}}
 
 	@Override
-	public String toHtml(){//{{{
+	public String getHtml(){//{{{
 		return "<div class=\"tile blankTile\"><span class=\"letter\">"
 			+ (this.ch != null ? Character.toUpperCase( getCharacter() ) : "&nbsp;" ) + "</span>"
 			 + "<span class=\"score\">&nbsp;</span>"

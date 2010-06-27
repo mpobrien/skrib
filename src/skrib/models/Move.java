@@ -34,4 +34,17 @@ public class Move{
 		return null;
 	}//}}}
 
+    public Multiset<Tile> mapify(){
+		HashMultiset<Tile> tilesmap = HashMultiset.create();
+		for(TilePlacement tp: this.tilePositions){
+			Tile t = tp.getTile();
+			if(t.blank()){
+				tilesmap.add(new BlankTile());
+			} else {
+				tilesmap.add(t);
+			}
+		}
+		return tilesmap;
+	}
+
 }

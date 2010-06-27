@@ -16,10 +16,9 @@
 		<div id="mytiles">
 			<div id="letters"> 
 				<div id="sortable"> 
-					<div class="tile"><span class="letter">A</span><span class="score">1</span></div> 
-					<div class="tile"><span class="letter">B</span><span class="score">3</span></div> 
-					<div class="tile"><span class="letter">C</span><span class="score">2</span></div> 
-					<div class="tile"><span class="letter">D</span><span class="score">2</span></div> 
+					<#list mytiles as tile>
+						${tile.html}
+					</#list>
 				</div> 
 			</div> 
 		</div>
